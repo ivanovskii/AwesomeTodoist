@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:awesome_todoist/AddTodoScreen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,11 +12,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Awesome Todoist',
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
       home: const MyHomePage(title: 'Awesome Todoist'),
+      routes: {
+        MyHomePage.id: (context) => MyHomePage(title: 'Awesome Todoist'),
+        AddTodoScreen.id: (context) => AddTodoScreen()
+      },
     );
   }
 }
@@ -23,6 +29,7 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
 
+  static const String id = 'main';
   final String title;
 
   @override
@@ -30,6 +37,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+  void addTodo() async {
+    var ats = AddTodoScreen();
+    await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) { return ats; })
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +54,10 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: const Center(
-        child: Text('Test'),
+        child: Text('Home Screen'),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: addTodo,
         child: const Icon(Icons.add),
       ),
     );
