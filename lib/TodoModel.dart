@@ -4,6 +4,8 @@ class Todo {
   DateTime? notifyAt;
   bool done = false;
 
+  Todo({this.id, required this.description, this.notifyAt});
+
   Map<String, dynamic> toMap() {
     var map = <String, dynamic> {
       'description': description,

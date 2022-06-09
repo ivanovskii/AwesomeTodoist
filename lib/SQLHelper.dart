@@ -39,6 +39,13 @@ class SQLHelper {
     return Todo.fromMap(maps.first);
   }
 
+  Future<int> update(Todo todo) async {
+    var database = await db;
+    return await database!.update("Todo", todo.toMap(),
+        where: 'id = ?',
+        whereArgs: [todo.id]);
+  }
+
   Future<List> all() async {
     var database = await db;
     return (await database!.rawQuery('SELECT * FROM Todo')).toList();
@@ -46,7 +53,12 @@ class SQLHelper {
 
   Future<int> delete(int id) async {
     var database = await db;
-    return await database!.delete('Todo', where: '$id = ?', whereArgs: [id]);
+    return await database!.delete('Todo', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future clear() async {
+    var database = await db;
+    return await database!.rawQuery('DELETE FROM Todo');
   }
 
   Future close() async => database!.close();
