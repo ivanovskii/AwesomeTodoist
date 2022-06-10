@@ -62,8 +62,10 @@ class _MyHomePageState extends State<MyHomePage> {
         context,
         MaterialPageRoute(builder: (context) { return AddTodoScreen(); })
     );
-    await database.insert(Todo.fromMap(res));
-    refreshList();
+    if (res != null) {
+      await database.insert(Todo.fromMap(res));
+      refreshList();
+    }
   }
 
   void updateTodo(int index) async {
@@ -71,8 +73,10 @@ class _MyHomePageState extends State<MyHomePage> {
         context,
         MaterialPageRoute(builder: (context) { return AddTodoScreen(todo: list[index]); })
     );
-    await database.update(Todo.fromMap(res));
-    refreshList();
+    if (res != null) {
+      await database.update(Todo.fromMap(res));
+      refreshList();
+    }
   }
 
   void deleteTodo(int index) async {
@@ -102,7 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
           return ListTile(
             title: Text(item.description),
             subtitle: Text(
-                item.done ? 'Done' : 'Not done'
+                '${item.done ? 'Done' : 'Not done'} | ${item.prettyNotifyAt(null) ?? 'No date'}'
             ),
             leading: Checkbox(
                 onChanged: (value) { changeStatus(index); },

@@ -1,23 +1,37 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'TodoModel.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 
 class AddTodoScreen extends StatelessWidget {
   static const String id = 'add_todo';
-  TextEditingController textController = TextEditingController();
-  Todo? todo;
 
+  TextEditingController textController = TextEditingController();
+  DateTime? notifyAt;
+
+  Todo? todo; // if null => create new to do, else edit this
   AddTodoScreen({Key? key, this.todo}) : super(key: key) {
     if (todo != null) {
+      notifyAt = todo!.notifyAt;
       textController.text = todo!.description;
     }
   }
 
   void apply(context) {
-    var map = todo?.toMap();
-    map?['description'] = textController.text;
-    Navigator.of(context).pop(
-      map ?? {'description': textController.text}
-    );
+    if (todo == null) { // create new
+      Navigator.of(context).pop(
+          {
+            'description': textController.text,
+            'notifyAt': notifyAt?.toString()
+          }
+      );
+    }
+    else { // edit to do
+      final map = todo!.toMap();
+      map['description'] = textController.text;
+      map['notifyAt'] = notifyAt?.toString();
+      Navigator.of(context).pop(map);
+    }
   }
 
   @override
@@ -50,7 +64,25 @@ class AddTodoScreen extends StatelessWidget {
                     ),
                   )
               ),
-            ]),
+            TextButton(
+                onPressed: () {
+                  DatePicker.showDateTimePicker(context,
+                      showTitleActions: true,
+                      minTime: todo?.notifyAt ?? DateTime.now(),
+                      maxTime: DateTime(2049, 12, 31, 23, 59, 59),
+                      onConfirm: (date) {
+                        notifyAt = date;
+                      },
+                      currentTime: notifyAt ?? DateTime.now(),
+                      locale: LocaleType.en
+                  );
+                },
+                child: Text(
+                  'show date time picker',
+                )
+            )
+        ]
+        ),
         floatingActionButton: FloatingActionButton(
           onPressed: () { apply(context); },
           backgroundColor: Colors.green,

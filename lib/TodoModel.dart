@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class Todo {
   int? id;
   String description = '';
@@ -5,6 +7,11 @@ class Todo {
   bool done = false;
 
   Todo({this.id, required this.description, this.notifyAt});
+
+  String? prettyNotifyAt(DateFormat? formatter) {
+    formatter??=DateFormat('dd/MM/yy HH:mm');
+    return notifyAt == null ? null : formatter.format(notifyAt!);
+  }
 
   Map<String, dynamic> toMap() {
     var map = <String, dynamic> {
