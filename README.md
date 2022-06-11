@@ -1,6 +1,6 @@
-# awesome_todoist
+# AwesomeTodoist
 
-A new Flutter project.
+AwesomeTodoist is my first flutter project that implements CRUD, notifications and transitions between screens.
 
 ## Getting Started
 
