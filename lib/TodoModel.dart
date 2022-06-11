@@ -8,7 +8,7 @@ class Todo {
 
   Todo({this.id, required this.description, this.notifyAt});
 
-  String? prettyNotifyAt(DateFormat? formatter) {
+  String? prettyNotifyAt([DateFormat? formatter]) {
     formatter??=DateFormat('dd/MM/yy HH:mm');
     return notifyAt == null ? null : formatter.format(notifyAt!);
   }

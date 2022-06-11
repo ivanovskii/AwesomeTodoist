@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'AddTodoScreen.dart';
 import 'SQLHelper.dart';
 import 'TodoModel.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
 void main() {
   runApp(const MyApp());
@@ -22,7 +26,7 @@ class MyApp extends StatelessWidget {
       home: const MyHomePage(title: 'Awesome Todoist'),
       routes: {
         MyHomePage.id: (context) => const MyHomePage(title: 'Awesome Todoist'),
-        AddTodoScreen.id: (context) => AddTodoScreen()
+        AddTodoScreen.id: (context) => const AddTodoScreen()
       },
     );
   }
@@ -60,10 +64,13 @@ class _MyHomePageState extends State<MyHomePage> {
   void addTodo() async {
     final res = await Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) { return AddTodoScreen(); })
+        MaterialPageRoute(builder: (context) { return const AddTodoScreen(); })
     );
-    if (res != null) {
-      await database.insert(Todo.fromMap(res));
+    if (res != null && res['description'] != '') {
+      int? id = await database.insert(Todo.fromMap(res));
+      if (res['notifyAt'] != null) {
+        notify(id, res['description'], DateTime.parse(res['notifyAt']));
+      }
       refreshList();
     }
   }
@@ -73,13 +80,20 @@ class _MyHomePageState extends State<MyHomePage> {
         context,
         MaterialPageRoute(builder: (context) { return AddTodoScreen(todo: list[index]); })
     );
-    if (res != null) {
-      await database.update(Todo.fromMap(res));
+
+    cancelNotifyIfExist(list[index]);
+
+    if (res != null && res['description'] != '') {
+      int? id = await database.update(Todo.fromMap(res));
+      if (res['notifyAt'] != null) {
+        notify(id, res['description'], DateTime.parse(res['notifyAt']));
+      }
       refreshList();
     }
   }
 
   void deleteTodo(int index) async {
+    cancelNotifyIfExist(list[index]);
     int id = list[index].id!;
     await database.delete(id);
     refreshList();
@@ -90,6 +104,37 @@ class _MyHomePageState extends State<MyHomePage> {
       list[index].done = !list[index].done;
     });
     await database.update(list[index]);
+  }
+
+  void cancelNotifyIfExist(Todo todo) {
+    if (todo.notifyAt != null) {
+      flutterLocalNotificationsPlugin.cancel(todo.id!);
+    }
+  }
+
+  void notify(int? id, String title, DateTime notifyAt) async {
+    if (notifyAt.isAfter(DateTime.now())) {
+      await flutterLocalNotificationsPlugin.schedule(
+          id!,
+          'respect+',
+          title,
+          notifyAt,
+          const NotificationDetails(
+              android: AndroidNotificationDetails(
+                'AwesomeTodoist Channel Id',
+                'AwesomeTodoist Channel Name',
+                channelDescription: 'AwesomeTodoist Channel Desc',
+                channelShowBadge: true,
+                priority: Priority.high,
+                importance: Importance.max,
+                icon: 'notification_icon',
+                sound: RawResourceAndroidNotificationSound('notification_sound'),
+                playSound: true,
+              )
+          )
+      );
+    }
+    ;
   }
 
   @override
@@ -106,7 +151,10 @@ class _MyHomePageState extends State<MyHomePage> {
           return ListTile(
             title: Text(item.description),
             subtitle: Text(
-                '${item.done ? 'Done' : 'Not done'} | ${item.prettyNotifyAt(null) ?? 'No date'}'
+                '${item.done ? 'Done' : 'Not done'} | ${item.prettyNotifyAt() ?? 'No date'}',
+                style: const TextStyle(
+                  fontSize: 12,
+                ),
             ),
             leading: Checkbox(
                 onChanged: (value) { changeStatus(index); },
